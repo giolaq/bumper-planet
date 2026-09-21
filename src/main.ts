@@ -1,0 +1,10 @@
+import '@fontsource/space-grotesk/500.css';
+import '@fontsource/space-grotesk/600.css';
+import '@fontsource/space-grotesk/700.css';
+import '@fontsource/dm-sans/400.css';
+import '@fontsource/dm-sans/500.css';
+import '@fontsource/dm-sans/600.css';
+import './style.css';
+const controller = location.pathname === '/play' || new URLSearchParams(location.search).has('room');
+if (controller) import('./phone').then(m => m.initPhone());
+else import('./host').then(m => m.initHost());
