@@ -19,7 +19,7 @@ npm run dev
 
 Open http://localhost:5173 on the projector computer. The QR code uses the computer's LAN address so phones on the same Wi-Fi can join. The host must keep the game tab open and visible. Some event Wi-Fi networks block device-to-device traffic; use a shared hotspot or the deployed HTTPS version in that case.
 
-Click **Let’s rumble** to start. Rounds last at most 45 seconds, with a three-second countdown and ten-second automatic rematch. Six bots are included for immediate play. **Play on this computer** adds a keyboard player (WASD/arrows, space to dash). Phones joining during a round enter the next round.
+Click **Let’s rumble** to start. Rounds last at most 45 seconds, with a three-second countdown and ten-second automatic rematch. Six bots are included for immediate play. Use **Remove practice bots** under The Crew to clear them; they stay removed until you add them again. At least two connected players are needed to start a round. **Play on this computer** adds a keyboard player (WASD/arrows, space to dash). Phones joining during a round enter the next round.
 
 Each player starts every round with three lives, shown as hearts on their phone. Falling costs one life. If any lives remain, the player returns after ten seconds at a clear spot inside the current arena. The third fall eliminates them until the next round. Players awaiting respawn still count as contenders; the round does not end just because only one bean is temporarily on the arena. The 45-second round limit still applies, and multiple remaining contenders at timeout means a draw.
 

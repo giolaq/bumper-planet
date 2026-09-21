@@ -22,7 +22,7 @@ export async function initHost() {
       <aside class="sidebar">
         <section class="join-card"><div class="card-topline"><span>YOUR PHONE IS THE CONTROLLER</span><span>↗</span></div><h2>Get in. Bump out.</h2><p>Scan to join the party. No app needed.</p><div class="qr-wrap"><canvas id="qr" aria-label="Scan this QR code to join the room"></canvas><div id="qr-loading">Opening the airlock…</div></div><div class="room-code"><span>ROOM CODE</span><button id="copy-code" title="Copy room link">······ <span>⧉</span></button></div><div class="connection-note" id="connection-note">Connecting to mission control…</div></section>
         <section class="how-card"><div class="section-label">A CRASH COURSE <span>30 SEC TO GET IT</span></div><div class="how-row"><span class="how-icon">↔</span><div><strong>Thumb to roam</strong><p>Drag the joystick on your phone.</p></div></div><div class="how-row"><span class="how-icon orange">ϟ</span><div><strong>Dash to bash</strong><p>Hit dash. Make it somebody’s problem.</p></div></div><div class="how-row"><span class="how-icon green">✳</span><div><strong>Three lives. Make them count.</strong><p>Bumped? Back in 10s, while lives last.</p></div></div></section>
-        <section class="crew-card"><div class="section-label">THE CREW <span id="crew-count">0 / 30</span></div><div id="roster" class="roster"></div><button class="text-button" id="add-bots">+ Add practice bots</button></section>
+        <section class="crew-card"><div class="section-label">THE CREW <span id="crew-count">0 / 30</span></div><div id="roster" class="roster"></div><div class="bot-controls"><button class="text-button" id="add-bots">+ Add practice bots</button><button class="text-button" id="remove-bots">Remove practice bots</button></div></section>
       </aside>
     </main>
     <footer class="control-dock"><div class="dock-info"><span class="dock-symbol">✳</span><div><strong id="dock-title">A little push goes a long way.</strong><span id="dock-subtitle">45-second rounds · Up to 30 players · Infinite grudges</span></div></div><div class="dock-actions"><button class="secondary-button" id="keyboard">Play on this computer</button><button class="primary-button" id="start">Let’s rumble ${arrowIcon}</button></div></footer>
@@ -74,9 +74,13 @@ export async function initHost() {
   });
   el('copy-code').onclick = async () => { if (!joinURL) return; try { await navigator.clipboard.writeText(joinURL); toast('Room link copied. Send it to your crew.'); } catch { toast(joinURL); } };
   el('add-bots').onclick = () => { if (game.players.length >= 30) { toast('This orbit is full.'); return; } game.addBots(1); };
+  el('remove-bots').onclick = () => {
+    game.removeBots(); toast('Practice bots removed. Bring on the humans.');
+  };
   el('start').onclick = () => {
     if (game.phase === 'playing' || game.phase === 'countdown') return;
-    if (game.phase === 'finished') game.round++; game.start(); playTone(600);
+    const rematch = game.phase === 'finished';
+    if (game.start()) { if (rematch) game.round++; playTone(600); }
   };
   el('keyboard').onclick = () => {
     if (!localPlayer) {
@@ -106,7 +110,7 @@ export async function initHost() {
     else if (game.phase === 'playing') { banner.className = 'round-banner timer'; banner.innerHTML = `<span>${game.remaining < 15 ? 'THE PLANET IS SHRINKING' : 'LAST BEAN STANDING'}</span><strong>${Math.ceil(game.remaining).toString().padStart(2, '0')}<small>s</small></strong>`; }
     else if (game.phase === 'finished') {
       banner.className = 'round-banner winner'; banner.innerHTML = `<span>${game.winner ? 'THE ORBIT BELONGS TO' : 'COSMIC CHAOS'}</span><strong>${game.winner ? escapeHTML(game.winner.name) : 'It’s a draw!'}</strong><small>Next round in ${Math.max(0, 10 - Math.floor(game.elapsed - finishTime))}s</small>`;
-      if (game.elapsed - finishTime > 10) { game.round++; game.start(); }
+      if (game.elapsed - finishTime > 10 && game.start()) game.round++;
     } else { banner.className = 'round-banner'; banner.innerHTML = ''; }
     const roster = JSON.stringify(game.players.map(p => [p.id, p.connected, p.alive, p.waiting, p.score, p.lives]));
     if (roster !== lastRoster) {
@@ -115,8 +119,10 @@ export async function initHost() {
       el('crew-count').textContent = `${game.players.length} / 30`;
     }
     const running = game.phase === 'playing' || game.phase === 'countdown';
-    el<HTMLButtonElement>('start').disabled = running;
-    el('start').innerHTML = running ? 'Round in progress <span class="button-dot"></span>' : `${game.phase === 'finished' ? 'Next round' : 'Let’s rumble'} ${arrowIcon}`;
+    const enoughPlayers = game.players.filter(p => p.connected).length >= 2;
+    el<HTMLButtonElement>('remove-bots').disabled = !game.players.some(p => p.bot);
+    el<HTMLButtonElement>('start').disabled = running || !enoughPlayers;
+    el('start').innerHTML = running ? 'Round in progress <span class="button-dot"></span>' : !enoughPlayers ? 'Waiting for 2 players' : `${game.phase === 'finished' ? 'Next round' : 'Let’s rumble'} ${arrowIcon}`;
     el('round-number').textContent = `ROUND ${String(game.round).padStart(2, '0')}`;
     el('arena-status').textContent = game.phase === 'playing' ? `${game.players.filter(p => p.alive && !p.waiting).length} BEANS STILL STANDING` : game.phase === 'finished' ? 'VICTORY TASTES LIKE CANDY' : 'THE CALM BEFORE THE CHAOS';
     if (now - lastState > 150) { connection.send({ type: 'state', state: game.snapshot() }); lastState = now; }

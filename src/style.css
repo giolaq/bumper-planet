@@ -8,3 +8,5 @@
 @media(prefers-reduced-motion:reduce){.preview-bean{animation:none}button,.toast{transition:none}}
 
 .phone-lives{display:flex;gap:7px;margin-top:7px;line-height:1}.life-heart{font-size:19px;color:#ff946e;text-shadow:0 0 12px #ff946e33}.life-heart.lost{color:#685873;text-shadow:none;opacity:.55}
+
+.bot-controls{display:flex;flex-wrap:wrap;gap:0 14px}.text-button:disabled{opacity:.35;cursor:default;text-decoration:none}

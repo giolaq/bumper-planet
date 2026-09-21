@@ -71,3 +71,11 @@ test('all players can orbit awaiting a comeback without ending the round', () =>
   assert.equal(game.phase, 'finished'); assert.equal(game.winner, undefined);
   assert.ok(game.snapshot().players.every(p => p.respawnIn === null), 'no pending comeback advertised after the round');
 });
+test('removing bots preserves humans and never silently adds bots on restart', () => {
+  const game = new Game(); const human = game.addPlayer('human', 'Human', 0)!;
+  game.addBots(6); game.start(); game.removeBots();
+  assert.deepEqual(game.players, [human]); assert.equal(game.phase, 'lobby');
+  assert.equal(game.start(), false); assert.equal(game.players.length, 1);
+  game.addPlayer('friend', 'Friend', 1); assert.equal(game.start(), true);
+  assert.ok(game.players.every(p => !p.bot));
+});

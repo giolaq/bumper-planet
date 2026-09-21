@@ -39,14 +39,22 @@ export class Game {
     const names = ['Peaches', 'Wobble', 'Pickle', 'Orbit', 'Mochi', 'Sunny', 'Noodle', 'Bubbles'];
     for (let i = 0; i < count; i++) this.addPlayer(`bot-${randomToken(8)}`, names[i % names.length], i, true);
   }
+  removeBots() {
+    this.players = this.players.filter(p => !p.bot);
+    if (this.winner?.bot) this.winner = undefined;
+    if (this.players.filter(p => p.connected).length < 2) {
+      this.phase = 'lobby'; this.winner = undefined; this.remaining = ROUND_SECONDS; this.radius = 8;
+      for (const p of this.players) { p.waiting = false; p.lives = STARTING_LIVES; this.respawn(p); }
+    }
+  }
   setInput(id: string, input: Input) {
     const p = this.players.find(p => p.id === id); if (!p) return;
     const len = Math.max(1, Math.hypot(input.x, input.z));
     p.input = { x: input.x / len, z: input.z / len, dash: input.dash || p.input.dash }; p.lastInput = this.elapsed;
   }
   start() {
-    if (this.phase === 'playing' || this.phase === 'countdown') return;
-    if (this.players.filter(p => p.connected).length < 2) this.addBots(5);
+    if (this.phase === 'playing' || this.phase === 'countdown') return false;
+    if (this.players.filter(p => p.connected).length < 2) { this.phase = 'lobby'; this.winner = undefined; return false; }
     this.players = this.players.filter(p => p.connected || p.bot);
     this.players.forEach((p, i) => {
       const a = i / this.players.length * Math.PI * 2;
@@ -55,6 +63,7 @@ export class Game {
         lastInput: this.elapsed, input: { x: 0, z: 0, dash: false } });
     });
     this.phase = 'countdown'; this.countdown = 3; this.remaining = ROUND_SECONDS; this.radius = 8; this.winner = undefined;
+    return true;
   }
   private respawn(p: Player) {
     // Choose a clear spot inside the current (possibly shrunken) arena.
